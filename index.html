@@ -2,11 +2,36 @@
 <html>
 <head>
 	<title></title>
+	<script src="noise.js"></script>
 </head>
 <body>
-<canvas id="canvas"></canvas>
+<canvas id="canvas" width="500", height="500"></canvas>
 <script>
-	
+	const canvas = document.getElementById('canvas');
+	const ctx = canvas.getContext('2d');
+	noise.seed(Math.random());
+	const noiseScale = 0.005;
+	// Step 1. Create a simple world with basic, varying desirability conditions.
+	const worldSize = [500, 500];
+	const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => noise.simplex2(i * noiseScale, j * noiseScale)));
+
+	function renderWorld() {
+		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const data = imageData.data;
+		world.forEach((r, i) => r.forEach((v, j) => {
+			// v is value
+			// i, j is index
+			const index = worldSize[0] * 4 * i + j * 4;
+			data[index] = data[index + 1] = data[index + 2] = (v + 1) / 2 * 255;
+			data[index + 3] = 255;
+		}));
+		ctx.putImageData(imageData, 0, 0);
+	}
+
+	renderWorld();
+
+	// Step 2. Model a system that can place points based on that desirability profile.
+
 </script>
 </body>
 </html>
