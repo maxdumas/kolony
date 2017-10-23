@@ -31,6 +31,49 @@
 	renderWorld();
 
 	// Step 2. Model a system that can place points based on that desirability profile.
+	let buildings = [];
+	const population = 50;
+	// Choose a random position in the space.
+	// Repeat for as many points as desired, until we have the number of buildings we want
+	// 1 person per house for now
+	for(let i = 0; i < population; ++i) {
+		while(true) {
+			const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
+			// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
+			const s = buildings.reduce((acc, b) => {
+				if (acc === -1) { return acc; }
+				const dx = p[0] - b[0];
+				const dy = p[1] - b[1];
+				const d = Math.sqrt(dx * dx + dy * dy);
+				const v = -5.789e-4 * d * d + 4.982e-2 * d - 1.978e-1;
+				if (v < -0.9) { return -1; }
+				else { return acc + v; }
+			}, 0);
+
+			const sociability = s === -1 ? -1 : s / (buildings.length || 1);
+
+			const accessibility = world[p[0]][p[1]];
+
+			const scores = [sociability, accessibility];
+
+			console.log(scores);
+
+			if (scores.find(x => x === -1) === undefined) {
+				const score = Math.max(scores.reduce((acc, x) => acc + x, 0) / scores.length, 0);
+				// Use the desirability as the probability that we choose that point.
+				// Roll the dice. If we choose the point, dandy, otherwise poopsicles.	
+				if (Math.random() < score) {
+					buildings.push(p);
+					break;
+				}
+			}			
+		}
+
+	}
+
+	buildings.forEach(b => {
+		ctx.fillRect(b[0], b[1], 2, 2);
+	});
 
 </script>
 </body>
