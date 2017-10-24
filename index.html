@@ -9,52 +9,51 @@
 <body>
 <canvas id="canvas" width="500", height="500"></canvas>
 <script>
-	const canvas = document.getElementById('canvas');
-	const ctx = canvas.getContext('2d');
-	noise.seed(Math.random());
-	const waterHeight = -0.2;
-	const noiseScale = 0.005;
-	// Step 1. Create a simple world with basic, varying desirability conditions.
-	const worldSize = [500, 500];
-	const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => noise.simplex2(i * noiseScale, j * noiseScale)));
+	(function () {
+		const canvas = document.getElementById('canvas');
+		const ctx = canvas.getContext('2d');
+		noise.seed(Math.random());
+		const waterHeight = -0.2;
+		const noiseScale = 0.005;
+		// Step 1. Create a simple world with basic, varying desirability conditions.
+		const worldSize = [500, 500];
+		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => noise.simplex2(i * noiseScale, j * noiseScale)));
 
-	
+		renderWorld(ctx, world, worldSize, waterHeight);
 
-	renderWorld(ctx, world);
+		// Step 2. Model a system that can place points based on that desirability profile.
+		let buildings = [];
+		const population = 500;
+		// Choose a random position in the space.
+		// Repeat for as many points as desired, until we have the number of buildings we want
+		// 1 person per house for now
+		for(let i = 0; i < population; ++i) {
+			while(true) {
+				const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
 
-	// Step 2. Model a system that can place points based on that desirability profile.
-	let buildings = [];
-	const population = 5;
-	// Choose a random position in the space.
-	// Repeat for as many points as desired, until we have the number of buildings we want
-	// 1 person per house for now
-	for(let i = 0; i < population; ++i) {
-		while(true) {
-			const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
+				// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
+				const desirabilityMetrics = [
+					sociabilityMetric,
+					accessibilityMetric,
+				];
+				const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.53, 0.47])(p, { world, buildings, waterHeight });
 
-			// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
-			const desirabilityMetrics = [
-				sociabilityMetric,
-				accessibilityMetric,
-			];
-			const desirability = aggregateDesirabilityMetric(desirabilityMetrics)(p, { world, buildings });
+				const q = Math.random();
+				if (desirability !== UNACCEPTABLE && q < desirability) {
+					// Use the desirability as the probability that we choose that point.
+					// Roll the dice. If we choose the point, dandy, otherwise poopsicles.	
+					console.log(q, desirability);
+					buildings.push(p);
+					break;
+				}			
+			}
 
-			const q = Math.random();
-			if (desirability !== UNACCEPTABLE && q < desirability) {
-				// Use the desirability as the probability that we choose that point.
-				// Roll the dice. If we choose the point, dandy, otherwise poopsicles.	
-				console.log(q, desirability);
-				buildings.push(p);
-				break;
-			}			
 		}
 
-	}
-
-	buildings.forEach(b => {
-		ctx.fillRect(b[0], b[1], 2, 2);
-	});
-
+		buildings.forEach(b => {
+			ctx.fillRect(b[0], b[1], 2, 2);
+		});
+	})();
 </script>
 </body>
 </html>

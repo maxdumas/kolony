@@ -1,4 +1,4 @@
-const renderWorld = (ct, world) => {
+const renderWorld = (ctx, world, worldSize, waterHeight) => {
 	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 	const data = imageData.data;
 	world.forEach((r, i) => r.forEach((v, j) => {
