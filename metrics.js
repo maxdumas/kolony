@@ -21,7 +21,7 @@ const sociabilityMetric = (p, context) => {
 
 		let v;
 		if (d < 5) {
-			v = 1 - 1 / (d * d);
+			v = 1 - 1 / ((d - 1) * (d - 1));
 		} else {
 			v = 2 / (1 + Math.exp((d-25))) - 1
 		}

@@ -17,6 +17,26 @@
 		}
 	};
 
+	const chooseNewSettlementLocation = (buildings, world, worldSize, waterHeight) => {
+		while(true) {
+			const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
+
+			// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
+			const desirabilityMetrics = [
+				sociabilityMetric,
+				accessibilityMetric,
+			];
+			const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.58, 0.42])(p, { world, buildings, waterHeight });
+
+			const q = Math.random();
+			if (desirability !== UNACCEPTABLE && q < desirability) {
+				// Use the desirability as the probability that we choose that point.
+				// Roll the dice. If we choose the point, dandy, otherwise poopsicles.
+				return p;
+			}
+		}
+	}
+
 	(function () {
 		const canvas = document.getElementById('canvas');
 		const ctx = canvas.getContext('2d');
@@ -36,25 +56,7 @@
 		// Repeat for as many points as desired, until we have the number of buildings we want
 		// 1 person per house for now
 		for(let i = 0; i < population; ++i) {
-			while(true) {
-				const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
-
-				// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
-				const desirabilityMetrics = [
-					sociabilityMetric,
-					accessibilityMetric,
-				];
-				const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.58, 0.42])(p, { world, buildings, waterHeight });
-
-				const q = Math.random();
-				if (desirability !== UNACCEPTABLE && q < desirability) {
-					// Use the desirability as the probability that we choose that point.
-					// Roll the dice. If we choose the point, dandy, otherwise poopsicles.	
-					buildings.push(p);
-					break;
-				}			
-			}
-
+			buildings.push(chooseNewSettlementLocation(buildings, world, worldSize, waterHeight));
 		}
 
 		buildings.forEach(b => {
