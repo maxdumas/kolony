@@ -9,21 +9,29 @@
 <body>
 <canvas id="canvas" width="500", height="500"></canvas>
 <script>
+	function bm(x, y, frequency, octaves) {
+		if (octaves > 1) {
+			return bm(x, y, frequency * 2, octaves - 1) / 2 + noise.simplex2(x * frequency, y * frequency);
+		} else {
+			return noise.simplex2(x * frequency, y * frequency);
+		}
+	};
+
 	(function () {
 		const canvas = document.getElementById('canvas');
 		const ctx = canvas.getContext('2d');
 		noise.seed(Math.random());
-		const waterHeight = -0.2;
+		const waterHeight = -0.5;
 		const noiseScale = 0.005;
 		// Step 1. Create a simple world with basic, varying desirability conditions.
 		const worldSize = [500, 500];
-		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => noise.simplex2(i * noiseScale, j * noiseScale)));
+		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => bm(i, j, noiseScale, 8)));
 
 		renderWorld(ctx, world, worldSize, waterHeight);
 
 		// Step 2. Model a system that can place points based on that desirability profile.
 		let buildings = [];
-		const population = 500;
+		const population = 1000;
 		// Choose a random position in the space.
 		// Repeat for as many points as desired, until we have the number of buildings we want
 		// 1 person per house for now
@@ -36,13 +44,12 @@
 					sociabilityMetric,
 					accessibilityMetric,
 				];
-				const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.53, 0.47])(p, { world, buildings, waterHeight });
+				const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.58, 0.42])(p, { world, buildings, waterHeight });
 
 				const q = Math.random();
 				if (desirability !== UNACCEPTABLE && q < desirability) {
 					// Use the desirability as the probability that we choose that point.
 					// Roll the dice. If we choose the point, dandy, otherwise poopsicles.	
-					console.log(q, desirability);
 					buildings.push(p);
 					break;
 				}			
