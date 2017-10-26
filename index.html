@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title></title>
+	<script src="lodash.min.js"></script>
 	<script src="noise.js"></script>
 	<script src="metrics.js"></script>
 	<script src="display.js"></script>
@@ -25,9 +26,9 @@
 			const desirabilityMetrics = [
 				sociabilityMetric,
 				accessibilityMetric,
+				slopeMetric,
 			];
-			const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.58, 0.42])(p, { world, buildings, waterHeight });
-
+			const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.95, 0.025, 0.025])(p, { world, worldSize, buildings, waterHeight });
 			const q = Math.random();
 			if (desirability !== UNACCEPTABLE && q < desirability) {
 				// Use the desirability as the probability that we choose that point.
@@ -51,16 +52,27 @@
 
 		// Step 2. Model a system that can place points based on that desirability profile.
 		let buildings = [];
-		const population = 1000;
+		let population = 1;
+
 		// Choose a random position in the space.
 		// Repeat for as many points as desired, until we have the number of buildings we want
 		// 1 person per house for now
-		for(let i = 0; i < population; ++i) {
-			buildings.push(chooseNewSettlementLocation(buildings, world, worldSize, waterHeight));
+
+		const addPerson = function () {
+			const b = chooseNewSettlementLocation(buildings, world, worldSize, waterHeight);
+			++population;
+			console.log(`Population ${population}`);
+			ctx.fillRect(b[0], b[1], 2, 2);
+			buildings.push(b);
+		};
+
+		for(let i = 0; i < 250; ++i) {
+			addPerson();
 		}
 
+		window.addEventListener('keydown', addPerson);
+
 		buildings.forEach(b => {
-			ctx.fillRect(b[0], b[1], 2, 2);
 		});
 	})();
 </script>

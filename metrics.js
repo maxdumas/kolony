@@ -36,6 +36,28 @@ const sociabilityMetric = (p, context) => {
 	return totalScore / (buildings.length || 1);
 };
 
+const slopeMetric = (p, context) => {
+	const { world, worldSize: [w, h] } = context;
+
+	const baseHeight = world[p[0]][p[1]];
+
+	const k = [-1, 0, 1];
+	const kernel = (i, j) => _.zip(k, k) // Enter R2
+		.filter(([di, dj]) => di !== 0 || di !== dj) // Can't both be zeros
+		.map(([di, dj]) => [i + di, j + dj]) // Calculate real indices
+		.filter(([x, y]) => x >= 0 && x < w && y >= 0 && y < h) // Only keep valid indices (for edge cases)
+		.map(([x, y]) => world[x][y]); // Read values
+
+
+	const gradient = _.max(kernel(p[0], p[1]).map(v => Math.abs(v - baseHeight)));
+
+	if (gradient > 0.02) {
+		return UNACCEPTABLE;
+	} else {
+		return (1 - 2 * gradient / 0.05);
+	}
+};
+
 const accessibilityMetric = (p, context) => {
 	const { world, waterHeight } = context;
 
@@ -44,6 +66,6 @@ const accessibilityMetric = (p, context) => {
 	if (height <= waterHeight) {
 		return UNACCEPTABLE;
 	} else {
-		return (1 - height);
+		return (1 - (height - waterHeight)  / (2 - waterHeight));
 	}
 };
