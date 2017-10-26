@@ -13,7 +13,7 @@ const aggregateDesirabilityMetric = (metrics, weights) => (p, context) => {
 const sociabilityMetric = (p, context) => {
 	const { buildings } = context;
 
-	let totalScore = 0;
+	let maxScore = -1;
 	for (b of buildings) {
 		const dx = p[0] - b[0];
 		const dy = p[1] - b[1];
@@ -23,20 +23,19 @@ const sociabilityMetric = (p, context) => {
 		if (d < 5) {
 			v = 1 - 1 / ((d - 2) * (d - 2));
 		} else {
-			v = 1 / (1 + Math.exp(0.05*(d-100)));
+			v = 1 / (1 + Math.exp(0.125*(d-5)));
 			// console.log(d, v);
 		}
 
 		// If buildings are too close to fit together this metric returns unacceptable
 		if (d < 5 && v < -0.9) {
 			return UNACCEPTABLE;
-		} else {
-			totalScore += v;
+		} else if (v > maxScore) {
+			maxScore = v;
 		}
 	}
 
-	if (buildings.length % 100 === 0) console.log(totalScore, buildings.length);
-	return totalScore / (buildings.length || 1);
+	return maxScore;
 };
 
 const slopeMetric = (p, context) => {
