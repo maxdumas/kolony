@@ -21,11 +21,13 @@ const sociabilityMetric = (p, context) => {
 
 		let v;
 		if (d < 5) {
-			v = 1 - 1 / ((d - 1) * (d - 1));
+			v = 1 - 1 / ((d - 2) * (d - 2));
 		} else {
-			v = 2 / (1 + Math.exp((d-25))) - 1
+			v = 1 / (1 + Math.exp(0.05*(d-100)));
+			// console.log(d, v);
 		}
 
+		// If buildings are too close to fit together this metric returns unacceptable
 		if (d < 5 && v < -0.9) {
 			return UNACCEPTABLE;
 		} else {
@@ -33,6 +35,7 @@ const sociabilityMetric = (p, context) => {
 		}
 	}
 
+	if (buildings.length % 100 === 0) console.log(totalScore, buildings.length);
 	return totalScore / (buildings.length || 1);
 };
 
@@ -51,7 +54,7 @@ const slopeMetric = (p, context) => {
 
 	const gradient = _.max(kernel(p[0], p[1]).map(v => Math.abs(v - baseHeight)));
 
-	if (gradient > 0.02) {
+	if (gradient > 0.05) {
 		return UNACCEPTABLE;
 	} else {
 		return (1 - 2 * gradient / 0.05);
@@ -66,6 +69,7 @@ const accessibilityMetric = (p, context) => {
 	if (height <= waterHeight) {
 		return UNACCEPTABLE;
 	} else {
-		return (1 - (height - waterHeight)  / (2 - waterHeight));
+		const h = 1 - height;
+		return h;
 	}
 };

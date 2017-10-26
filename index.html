@@ -8,7 +8,11 @@
 	<script src="display.js"></script>
 </head>
 <body>
-<canvas id="canvas" width="500", height="500"></canvas>
+<canvas id="canvas" width="500" height="500"></canvas>
+<canvas id="aggregateCanvas" width="500" height="500"></canvas>
+<canvas id="accessibilityCanvas" width="500" height="500"></canvas>
+<canvas id="slopeCanvas" width="500" height="500"></canvas>
+<canvas id="sociabilityCanvas" width="500" height="500"></canvas>
 <script>
 	function bm(x, y, frequency, octaves) {
 		if (octaves > 1) {
@@ -18,17 +22,21 @@
 		}
 	};
 
+	const desirabilityMetrics = [
+		sociabilityMetric,
+		accessibilityMetric,
+		slopeMetric,
+	];
+	const aggregateMetric = aggregateDesirabilityMetric(desirabilityMetrics, [1, 1, 1]);
+
 	const chooseNewSettlementLocation = (buildings, world, worldSize, waterHeight) => {
 		while(true) {
 			const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
 
 			// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
-			const desirabilityMetrics = [
-				sociabilityMetric,
-				accessibilityMetric,
-				slopeMetric,
-			];
-			const desirability = aggregateDesirabilityMetric(desirabilityMetrics, [0.95, 0.025, 0.025])(p, { world, worldSize, buildings, waterHeight });
+
+			const desirability = aggregateMetric(p, { world, worldSize, buildings, waterHeight });
+			
 			const q = Math.random();
 			if (desirability !== UNACCEPTABLE && q < desirability) {
 				// Use the desirability as the probability that we choose that point.
@@ -46,7 +54,7 @@
 		const noiseScale = 0.005;
 		// Step 1. Create a simple world with basic, varying desirability conditions.
 		const worldSize = [500, 500];
-		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => bm(i, j, noiseScale, 8)));
+		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => bm(i, j, noiseScale, 2)));
 
 		renderWorld(ctx, world, worldSize, waterHeight);
 
@@ -70,10 +78,16 @@
 			addPerson();
 		}
 
-		window.addEventListener('keydown', addPerson);
-
-		buildings.forEach(b => {
+		window.addEventListener('keydown', function () {
+			addPerson();
 		});
+
+		renderMetric('aggregateCanvas', aggregateMetric, { world, worldSize, waterHeight, buildings });
+		renderMetric('accessibilityCanvas', accessibilityMetric, { world, worldSize, waterHeight });
+		renderMetric('slopeCanvas', slopeMetric, { world, worldSize });
+		renderMetric('sociabilityCanvas', sociabilityMetric, { world, worldSize, buildings });
+
+		window.world = world;
 	})();
 </script>
 </body>
