@@ -6,12 +6,19 @@ const aggregateDesirabilityMetric = (metrics, weights) => (p, context) => {
 	if (scores.find(x => x === UNACCEPTABLE) !== undefined) {
 		return UNACCEPTABLE;
 	} else {
-		return scores.reduce((acc, x, i) => acc + weights[i] * x, 0) / scores.length;
+		// const z = scores.map(Math.exp);
+		// const sum = _.sum(z);
+		// const softmax = _.max(z.map(s => s / sum));
+		// return softmax;
+		const avg = scores.reduce((acc, x, i) => acc + weights[i] * x, 0) / scores.length;
+		return avg;
 	}
 };
 
 const sociabilityMetric = (p, context) => {
 	const { buildings } = context;
+
+	if (buildings.length === 0) { return 0.5; }
 
 	let maxScore = -1;
 	for (b of buildings) {
@@ -19,18 +26,15 @@ const sociabilityMetric = (p, context) => {
 		const dy = p[1] - b[1];
 		const d = Math.sqrt(dx * dx + dy * dy);
 
-		let v;
-		if (d < 5) {
-			v = 1 - 1 / ((d - 2) * (d - 2));
-		} else {
-			v = 1 / (1 + Math.exp(0.125*(d-5)));
-			// console.log(d, v);
+		// If buildings are too close to fit together this metric returns unacceptable
+		if (d <= 2) {
+			return UNACCEPTABLE;
 		}
 
-		// If buildings are too close to fit together this metric returns unacceptable
-		if (d < 5 && v < -0.9) {
-			return UNACCEPTABLE;
-		} else if (v > maxScore) {
+
+		const v = 1 / (1 + Math.exp(0.2*(d-10)));
+
+		if (v > maxScore) {
 			maxScore = v;
 		}
 	}
@@ -50,13 +54,12 @@ const slopeMetric = (p, context) => {
 		.filter(([x, y]) => x >= 0 && x < w && y >= 0 && y < h) // Only keep valid indices (for edge cases)
 		.map(([x, y]) => world[x][y]); // Read values
 
-
 	const gradient = _.max(kernel(p[0], p[1]).map(v => Math.abs(v - baseHeight)));
 
-	if (gradient > 0.05) {
+	if (gradient > 0.03) {
 		return UNACCEPTABLE;
 	} else {
-		return (1 - 2 * gradient / 0.05);
+		return Math.max(0, 1 - gradient / 0.03);
 	}
 };
 

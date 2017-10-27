@@ -5,7 +5,7 @@ const renderWorld = (ctx, world, worldSize, waterHeight) => {
 		// v is value
 		// i, j is index
 		const index = worldSize[0] * 4 * j + i * 4;
-		const z = (v + 1) / 2 * 255;
+		const z = v * 255;
 		data[index] = 50;
 		if (v > waterHeight) {
 			data[index + 1] = z;
@@ -34,8 +34,8 @@ const renderMetric = (canvasId, metric, context) => {
 			data[index] = 255;
 			data[index + 1] = data[index + 2] = 0; // Red = unacceptable
 		} else {
-			data[index + 1] = 255 - (v + 1) / 2 * 255; // More negative = more green
-			data[index + 2] = (v + 1) / 2 * 255; // More positive = more blue
+			data[index + 1] = 255 - v * 255; // Closer to 0 = more green
+			data[index + 2] = v * 255; // Closer to 1 = more blue
 		}
 		data[index + 3] = 255;
 	}));

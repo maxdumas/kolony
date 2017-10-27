@@ -27,17 +27,16 @@
 		accessibilityMetric,
 		slopeMetric,
 	];
-	const aggregateMetric = aggregateDesirabilityMetric(desirabilityMetrics, [1, 1, 1]);
+	const aggregateMetric = aggregateDesirabilityMetric(desirabilityMetrics, [0.75, 1.75, 0.5]);
 
 	const chooseNewSettlementLocation = (buildings, world, worldSize, waterHeight) => {
 		while(true) {
 			const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
 
 			// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
-
 			const desirability = aggregateMetric(p, { world, worldSize, buildings, waterHeight });
 			
-			const q = Math.random();
+			const q = Math.random() / 2 + 0.5;
 			if (desirability !== UNACCEPTABLE && q < desirability) {
 				// Use the desirability as the probability that we choose that point.
 				// Roll the dice. If we choose the point, dandy, otherwise poopsicles.
@@ -50,17 +49,17 @@
 		const canvas = document.getElementById('canvas');
 		const ctx = canvas.getContext('2d');
 		noise.seed(Math.random());
-		const waterHeight = -0.5;
+		const waterHeight = 0.25;
 		const noiseScale = 0.005;
 		// Step 1. Create a simple world with basic, varying desirability conditions.
 		const worldSize = [500, 500];
-		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => bm(i, j, noiseScale, 2)));
+		const world = Array(worldSize[0]).fill().map((_, i) => Array(worldSize[1]).fill().map((_, j) => 0.5 * bm(i, j, noiseScale, 6) + 0.5));
 
 		renderWorld(ctx, world, worldSize, waterHeight);
 
 		// Step 2. Model a system that can place points based on that desirability profile.
 		let buildings = [];
-		let population = 1;
+		let population = 0;
 
 		// Choose a random position in the space.
 		// Repeat for as many points as desired, until we have the number of buildings we want
@@ -69,23 +68,23 @@
 		const addPerson = function () {
 			const b = chooseNewSettlementLocation(buildings, world, worldSize, waterHeight);
 			++population;
-			console.log(`Population ${population}`);
+			if (population % 100 === 0) console.log(`Population ${population}`);
 			ctx.fillRect(b[0], b[1], 2, 2);
 			buildings.push(b);
 		};
 
-		for(let i = 0; i < 250; ++i) {
+		for(let i = 0; i < 10000; ++i) {
 			addPerson();
 		}
 
 		window.addEventListener('keydown', function () {
 			addPerson();
+			renderMetric('aggregateCanvas', aggregateMetric, { world, worldSize, waterHeight, buildings });
+			renderMetric('accessibilityCanvas', accessibilityMetric, { world, worldSize, waterHeight });
+			renderMetric('slopeCanvas', slopeMetric, { world, worldSize });
+			renderMetric('sociabilityCanvas', sociabilityMetric, { world, worldSize, buildings });
 		});
 
-		renderMetric('aggregateCanvas', aggregateMetric, { world, worldSize, waterHeight, buildings });
-		renderMetric('accessibilityCanvas', accessibilityMetric, { world, worldSize, waterHeight });
-		renderMetric('slopeCanvas', slopeMetric, { world, worldSize });
-		renderMetric('sociabilityCanvas', sociabilityMetric, { world, worldSize, buildings });
 
 		window.world = world;
 	})();
