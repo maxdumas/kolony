@@ -29,9 +29,25 @@
 	];
 	const aggregateMetric = aggregateDesirabilityMetric(desirabilityMetrics, [0.75, 1.75, 0.5]);
 
+	const selectPointWithinRadiusOfExistingBuildings = (buildings, worldSize, radius) => {
+		if (buildings.length === 0) {
+			return [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
+		}
+
+		const randomIndex = Math.floor(Math.random() * buildings.length);
+		const [px, py] = buildings[randomIndex];
+		const angle = Math.random() * 2 * Math.PI;
+		const dx = Math.floor(radius * Math.cos(angle));
+		const dy = Math.floor(radius * Math.sin(angle));
+		const x = Math.min(Math.max(px + dx, 0), worldSize[0] - 1);
+		const y = Math.min(Math.max(py + dy, 0), worldSize[1] - 1);
+		return [x, y];
+	};
+
 	const chooseNewSettlementLocation = (buildings, world, worldSize, waterHeight) => {
+		let searchRadius = 5;
 		while(true) {
-			const p = [Math.floor(Math.random() * worldSize[0]), Math.floor(Math.random() * worldSize[1])];
+			const p = selectPointWithinRadiusOfExistingBuildings(buildings, worldSize, searchRadius);
 
 			// Calculate the desirability of the point. Ensure it is on a scale [-1, 1]
 			const desirability = aggregateMetric(p, { world, worldSize, buildings, waterHeight });
@@ -40,7 +56,10 @@
 			if (desirability !== UNACCEPTABLE && q < desirability) {
 				// Use the desirability as the probability that we choose that point.
 				// Roll the dice. If we choose the point, dandy, otherwise poopsicles.
+				console.log((searchRadius - 5) * 2);
 				return p;
+			} else {
+				searchRadius += 0.5;
 			}
 		}
 	}
