@@ -68,21 +68,20 @@
 		const addPerson = function () {
 			const b = chooseNewSettlementLocation(buildings, world, worldSize, waterHeight);
 			++population;
-			if (population % 100 === 0) console.log(`Population ${population}`);
 			ctx.fillRect(b[0], b[1], 2, 2);
 			buildings.push(b);
 		};
 
-		for(let i = 0; i < 10000; ++i) {
-			addPerson();
-		}
-
-		window.addEventListener('keydown', function () {
-			addPerson();
-			renderMetric('aggregateCanvas', aggregateMetric, { world, worldSize, waterHeight, buildings });
-			renderMetric('accessibilityCanvas', accessibilityMetric, { world, worldSize, waterHeight });
-			renderMetric('slopeCanvas', slopeMetric, { world, worldSize });
-			renderMetric('sociabilityCanvas', sociabilityMetric, { world, worldSize, buildings });
+		window.addEventListener('keyup', function () {
+			if (event.key === 'd') {
+				renderMetric('aggregateCanvas', aggregateMetric, { world, worldSize, waterHeight, buildings });
+				renderMetric('accessibilityCanvas', accessibilityMetric, { world, worldSize, waterHeight });
+				renderMetric('slopeCanvas', slopeMetric, { world, worldSize });
+				renderMetric('sociabilityCanvas', sociabilityMetric, { world, worldSize, buildings });
+			} else if (event.key === ' ') {
+				for(let i = 0; i < 100; ++i) addPerson();
+				console.log(`Population ${population}`);
+			}
 		});
 
 
